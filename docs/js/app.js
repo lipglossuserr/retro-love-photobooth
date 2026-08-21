@@ -6,10 +6,18 @@
  */
 (() => {
   // Width / height ratio of the visible Nikon screen opening (see styles.css
-  // --screen-* custom properties). Captured frames are cropped to match this
-  // so the saved photo lines up with exactly what the user saw live.
-  const SCREEN_ASPECT = 0.7538586515028433; // width / height
+  // --screen-* custom properties). The LIVE camera feed is cropped to this
+  // so what's on screen lines up with the Nikon overlay art. This is
+  // unrelated to how the final saved photo is framed (see FRAME_HOLE below).
+  const LIVE_SCREEN_ASPECT = 0.7538586515028433; // width / height
   const JPEG_QUALITY = 0.96;
+
+  // Where the transparent photo opening sits inside assets/polaroid.png, in
+  // source pixels. Only the SAVED/DOWNLOADED photo gets composited into
+  // this frame — the live webcam view always stays the Nikon camera look.
+  const FRAME_SRC = "assets/polaroid.png";
+  const FRAME_HOLE = { x: 111, y: 402, width: 928, height: 950 };
+  const FRAME_HOLE_ASPECT = FRAME_HOLE.width / FRAME_HOLE.height;
 
   // Many laptops expose a second "camera" that is actually an infrared
   // sensor for Windows Hello face login. Browsers can pick it by default,
@@ -44,6 +52,8 @@
     counting: false,
     hasPhoto: false,
     lastBlob: null,
+    frameImage: null,
+    frameReady: null,
     devices: [],
     autoSwitchedForBlackFeed: false,
     blackFrameStreak: 0,
@@ -86,6 +96,59 @@
 
   function setBadge(text) {
     els.resBadge.textContent = text;
+  }
+
+  // ----------------------------------------------------------------------
+  // Frame artwork (assets/polaroid.png) — preloaded once so it's ready
+  // in memory the instant a photo is composited for download/save.
+  // ----------------------------------------------------------------------
+
+  function preloadFrameImage() {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        state.frameImage = img;
+        resolve(img);
+      };
+      img.onerror = () => {
+        console.error("Could not load frame artwork at " + FRAME_SRC);
+        resolve(null);
+      };
+      img.src = FRAME_SRC;
+    });
+  }
+  function ensureFrameImage() {
+    if (state.frameImage) return Promise.resolve(state.frameImage);
+    if (!state.frameReady) {
+      state.frameReady = preloadFrameImage();
+    }
+    return state.frameReady.then((img) => {
+      if (!img) state.frameReady = null; // let the next call retry
+      return img;
+    });
+  }
+
+  /**
+   * Bakes the captured photo into the polaroid.png artwork: draws the photo
+   * into the frame's transparent opening, then draws the frame on top. This
+   * is what actually gets downloaded / saved — never the bare rectangle.
+   */
+  function compositeWithFrame(sourceCanvas) {
+    const frame = state.frameImage;
+    if (!frame) return sourceCanvas; // defensive fallback only; buildFramedBlob guards against this
+
+    const out = document.createElement("canvas");
+    out.width = frame.naturalWidth;
+    out.height = frame.naturalHeight;
+    const ctx = out.getContext("2d");
+
+    ctx.drawImage(
+        sourceCanvas,
+        0, 0, sourceCanvas.width, sourceCanvas.height,
+        FRAME_HOLE.x, FRAME_HOLE.y, FRAME_HOLE.width, FRAME_HOLE.height
+    );
+    ctx.drawImage(frame, 0, 0, out.width, out.height);
+    return out;
   }
 
   // ----------------------------------------------------------------------
@@ -366,10 +429,11 @@
 
   /**
    * Draws the current video frame onto a canvas at the camera's real source
-   * resolution, cropped to the visible screen-window aspect ratio and
-   * mirrored so it matches what the user saw in the live preview.
+   * resolution, cropped to the given aspect ratio and mirrored so it matches
+   * what the user saw in the live preview. Called once per aspect ratio
+   * needed (the Nikon live screen and the polaroid save frame differ).
    */
-  function captureFrameToCanvas() {
+  function captureFrameToCanvas(targetAspect) {
     const video = els.video;
     const sw = video.videoWidth;
     const sh = video.videoHeight;
@@ -378,17 +442,17 @@
     const sourceAspect = sw / sh;
     let cropW = sw;
     let cropH = sh;
-    if (sourceAspect > SCREEN_ASPECT) {
+    if (sourceAspect > targetAspect) {
       cropH = sh;
-      cropW = Math.round(sh * SCREEN_ASPECT);
+      cropW = Math.round(sh * targetAspect);
     } else {
       cropW = sw;
-      cropH = Math.round(sw / SCREEN_ASPECT);
+      cropH = Math.round(sw / targetAspect);
     }
     const sx = Math.round((sw - cropW) / 2);
     const sy = Math.round((sh - cropH) / 2);
 
-    const canvas = els.canvas;
+    const canvas = document.createElement("canvas");
     canvas.width = cropW;
     canvas.height = cropH;
     const ctx = canvas.getContext("2d");
@@ -410,41 +474,62 @@
     await runCountdown();
     fireFlash();
 
-    const canvas = captureFrameToCanvas();
+    const liveCanvas = captureFrameToCanvas(LIVE_SCREEN_ASPECT);
     state.counting = false;
 
-    if (!canvas) {
+    if (!liveCanvas) {
       showError("Couldn't read a frame from the camera. Try Restart HD Camera.");
       els.btnCapture.disabled = false;
       return;
     }
 
-    canvas.toBlob(
+    // Show the raw Nikon-screen shot immediately, exactly as before.
+    showCapturedPhoto(liveCanvas);
+
+    // Independently crop the same instant to the polaroid frame's aspect
+    // ratio and bake it into assets/polaroid.png in the background. Only
+    // this version becomes the download / Save to Booth file.
+    const saveCanvas = captureFrameToCanvas(FRAME_HOLE_ASPECT);
+    buildFramedBlob(saveCanvas || liveCanvas);
+  }
+
+  async function buildFramedBlob(sourceCanvas) {
+    const frame = state.frameImage || (await ensureFrameImage());
+    if (!frame) {
+      showError("Couldn't load the polaroid frame artwork. Check your connection, then press \u201cRetake\u201d to try again.");
+      return; // Download/Save stay disabled — an unframed photo is never exported.
+    }
+
+    const framedCanvas = compositeWithFrame(sourceCanvas);
+    framedCanvas.toBlob(
         (blob) => {
           if (!blob) {
-            showError("Couldn't encode the photo. Please try again.");
-            els.btnCapture.disabled = false;
+            showError("Couldn't encode the framed photo. Please try again.");
             return;
           }
           state.lastBlob = blob;
-          showCapturedPhoto(blob);
+          if (state.hasPhoto) {
+            els.btnDownload.disabled = false;
+            els.btnSave.disabled = false;
+          }
         },
         "image/jpeg",
         JPEG_QUALITY
     );
   }
 
-  function showCapturedPhoto(blob) {
-    const url = URL.createObjectURL(blob);
-    els.photo.src = url;
+  function showCapturedPhoto(canvas) {
+    els.photo.src = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
     els.photo.classList.remove("hidden");
     els.video.classList.add("hidden");
     state.hasPhoto = true;
 
     els.btnCapture.disabled = true;
     els.btnRetake.disabled = false;
-    els.btnDownload.disabled = false;
-    els.btnSave.disabled = false;
+    // Download/Save stay disabled until the framed version finishes baking
+    // in buildFramedBlob(), so nothing un-framed can ever be exported.
+    els.btnDownload.disabled = true;
+    els.btnSave.disabled = true;
     clearSaveStatus();
   }
 
@@ -469,7 +554,7 @@
         .replace(/\..+/, "");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(state.lastBlob);
-    a.download = `retro-love-${stamp}.jpg`;
+    a.download = `photobooth-${stamp}.jpg`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -529,6 +614,8 @@
   // ----------------------------------------------------------------------
   // Boot
   // ----------------------------------------------------------------------
+
+  state.frameReady = preloadFrameImage();
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     showError("This browser doesn't support camera access. Try the latest Chrome or Edge over http://localhost.");

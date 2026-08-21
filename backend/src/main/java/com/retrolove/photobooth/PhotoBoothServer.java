@@ -344,7 +344,9 @@ public final class PhotoBoothServer {
         String contentType = contentTypeFor(target.getFileName().toString());
         Headers headers = exchange.getResponseHeaders();
         headers.add("Content-Type", contentType);
-        if (contentType.startsWith("text/html")) {
+        if (contentType.startsWith("text/html")
+                || contentType.equals("application/javascript; charset=utf-8")
+                || contentType.equals("text/css; charset=utf-8")) {
             headers.add("Cache-Control", "no-cache");
         } else {
             headers.add("Cache-Control", "public, max-age=3600");
