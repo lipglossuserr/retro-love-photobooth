@@ -1,0 +1,5 @@
+.idea/
+backend/target/
+captured-photos/*.jpg
+captured-photos/*.jpeg
+.DS_Store

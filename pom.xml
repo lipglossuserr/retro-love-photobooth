@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.retrolove</groupId>
+  <artifactId>retro-love-photobooth</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+
+  <name>Retro Love Photobooth</name>
+  <description>
+    A dependency-light IntelliJ-friendly photobooth: a plain HTML/CSS/JS frontend
+    composited over supplied romantic scrapbook artwork, served by a small
+    Java 17+ com.sun.net.httpserver backend. This root POM exists mainly so
+    IntelliJ recognizes the project structure automatically; no framework
+    dependencies are required to build or run it.
+  </description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>17</maven.compiler.release>
+  </properties>
+
+  <modules>
+    <module>backend</module>
+  </modules>
+</project>

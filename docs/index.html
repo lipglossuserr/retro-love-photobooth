@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Retro Love Photobooth</title>
+  <meta name="description" content="A romantic retro webcam photobooth inside a heart-paper scrapbook scene." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Playfair+Display:ital,wght@0,600;1,700&family=Poppins:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="booth">
+    <img class="vinyl" src="assets/heart-vinyl.jpg" alt="Heart-shaped vinyl record, Eternal Love Songs" />
+
+    <header class="booth-header">
+      <h1 class="booth-title">Retro Love Photobooth</h1>
+      <p class="booth-subtitle">smile — the shutter's listening</p>
+    </header>
+
+    <main class="stage">
+      <div class="camera-shell" id="cameraShell">
+        <div class="screen-window" id="screenWindow">
+          <video id="liveVideo" autoplay playsinline muted></video>
+          <img id="capturedPhoto" class="hidden" alt="Your captured photo" />
+          <div class="screen-message hidden" id="screenMessage"></div>
+          <div class="countdown hidden" id="countdown"><span id="countdownNumber">3</span></div>
+          <div class="flash" id="flash"></div>
+        </div>
+        <img
+          class="camera-overlay"
+          src="assets/nikon-camera-overlay.png"
+          alt="Retro red Nikon camera frame"
+          draggable="false"
+        />
+      </div>
+
+      <canvas id="captureCanvas" class="hidden"></canvas>
+
+      <div class="badge-row">
+        <span class="badge" id="resBadge">— × — · —fps</span>
+        <label class="camera-select-wrap">
+          <span class="visually-hidden">Choose camera</span>
+          <select id="cameraSelect" class="camera-select">
+            <option value="">Default camera</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="control-panel">
+        <div class="control-panel-tape" aria-hidden="true"></div>
+
+        <div class="controls-main">
+          <button id="btnCapture" class="btn btn-primary" type="button">Take Photo</button>
+          <button id="btnRetake" class="btn" type="button" disabled>Retake</button>
+          <button id="btnDownload" class="btn" type="button" disabled>Download</button>
+          <button id="btnSave" class="btn" type="button" disabled>Save to Booth</button>
+        </div>
+
+        <div class="controls-secondary">
+          <button id="btnRestart" class="btn btn-ghost" type="button">Restart HD Camera</button>
+          <span class="hint">Space capture &middot; R retake &middot; D download</span>
+        </div>
+
+        <p class="error-banner hidden" id="errorBanner" role="alert"></p>
+        <p class="save-status hidden" id="saveStatus" role="status"></p>
+      </div>
+    </main>
+
+    <footer class="booth-footer">
+      <p>Eternal Love Songs, Side A — captured with love</p>
+    </footer>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

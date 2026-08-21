@@ -1,0 +1,493 @@
+/* =========================================================================
+   Retro Love Photobooth — styles.css
+   Design tokens
+     Color   --wine #6E1423, --wine-deep #3C0E17, --cream #F4EAD9,
+             --paper #EEE1CB, --blush #C98A93, --ink #2B1414, --gold #B08D4F
+     Type    Display: "Playfair Display" (romantic serif, headings)
+             Script:  "Caveat" (handwritten accents, countdown, badges)
+             Body:    "Poppins" (clean rounded sans, controls/UI)
+     Signature: the 3‑2‑1 countdown is hand‑lettered onto the camera screen
+                with a soft ink‑blot bloom, tying the core interaction to
+                the scrapbook‑diary mood instead of a generic progress ring.
+   ========================================================================= */
+
+:root {
+  --wine: #6e1423;
+  --wine-deep: #3c0e17;
+  --wine-bright: #8f1d31;
+  --cream: #f4ead9;
+  --paper: #eee1cb;
+  --blush: #c98a93;
+  --ink: #2b1414;
+  --gold: #b08d4f;
+
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-script: "Caveat", "Segoe Script", cursive;
+  --font-body: "Poppins", "Segoe UI", system-ui, sans-serif;
+
+  --screen-left: 10.0155%;
+  --screen-top: 9.1797%;
+  --screen-width: 72.0497%;
+  --screen-height: 60.1074%;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: #d8c6a5;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.hidden {
+  display: none !important;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* -------------------------------------------------------------------- */
+/* Booth shell + background                                             */
+/* -------------------------------------------------------------------- */
+
+.booth {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  background-image: url("../assets/paper-hearts-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 16px 48px;
+}
+
+.vinyl {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: clamp(96px, 16vw, 190px);
+  height: auto;
+  filter: drop-shadow(0 10px 18px rgba(30, 6, 12, 0.45));
+  transform: rotate(8deg);
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+/* -------------------------------------------------------------------- */
+/* Header                                                                */
+/* -------------------------------------------------------------------- */
+
+.booth-header {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  margin: 6px 0 22px;
+  max-width: 640px;
+}
+
+.booth-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(1.9rem, 5vw, 2.9rem);
+  color: var(--wine-deep);
+  margin: 0 0 4px;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+.booth-subtitle {
+  font-family: var(--font-script);
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
+  color: var(--wine);
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------- */
+/* Stage                                                                 */
+/* -------------------------------------------------------------------- */
+
+.stage {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.camera-shell {
+  position: relative;
+  width: min(78vw, 420px);
+  aspect-ratio: 1288 / 2048;
+  transform: rotate(-5deg);
+  filter: drop-shadow(0 22px 30px rgba(20, 4, 8, 0.5));
+  margin: 8px 0 4px;
+}
+
+.screen-window {
+  position: absolute;
+  left: var(--screen-left);
+  top: var(--screen-top);
+  width: var(--screen-width);
+  height: var(--screen-height);
+  overflow: hidden;
+  background: #17100f;
+  border-radius: 3px;
+}
+
+.screen-window video,
+.screen-window img#capturedPhoto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.screen-window video.mirrored,
+.screen-window img#capturedPhoto.mirrored {
+  transform: scaleX(-1);
+}
+
+.screen-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10%;
+  font-family: var(--font-body);
+  font-size: clamp(0.7rem, 2.6vw, 0.95rem);
+  line-height: 1.4;
+  color: #f4ead9;
+  background: rgba(20, 8, 10, 0.72);
+}
+
+.camera-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  z-index: 3;
+}
+
+/* Countdown — the signature moment: hand-lettered numerals with an ink bloom */
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.countdown span {
+  font-family: var(--font-script);
+  font-size: clamp(3.2rem, 16vw, 5.5rem);
+  color: #fbf3e6;
+  text-shadow: 0 0 18px rgba(0, 0, 0, 0.55);
+  animation: ink-bloom 1s ease-out;
+}
+
+@keyframes ink-bloom {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+    filter: blur(4px);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.08);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  background: #fffdf7;
+  opacity: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.flash.firing {
+  animation: flash-pop 320ms ease-out;
+}
+
+@keyframes flash-pop {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* -------------------------------------------------------------------- */
+/* Badges + camera picker                                                */
+/* -------------------------------------------------------------------- */
+
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.badge {
+  font-family: var(--font-script);
+  font-size: 1.05rem;
+  color: var(--cream);
+  background: var(--wine);
+  border: 1px solid rgba(244, 234, 217, 0.35);
+  padding: 4px 14px;
+  border-radius: 999px;
+  box-shadow: 0 3px 6px rgba(20, 4, 8, 0.3);
+}
+
+.camera-select {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--ink);
+  background: var(--cream);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 5px 12px;
+  max-width: 220px;
+}
+/* Draws the eye here when the active feed looks black (e.g. an IR/Windows
+   Hello camera got picked) and a person needs to choose a different one. */
+.camera-select.alert {
+  border-color: #b23a3a;
+  animation: select-alert-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes select-alert-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(178, 58, 58, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(178, 58, 58, 0);
+  }
+}
+/* -------------------------------------------------------------------- */
+/* Control panel — a scrapbook caption card                              */
+/* -------------------------------------------------------------------- */
+
+.control-panel {
+  position: relative;
+  width: 100%;
+  background: var(--paper);
+  border: 1px solid rgba(110, 20, 35, 0.25);
+  border-radius: 14px;
+  padding: 20px 18px 16px;
+  box-shadow: 0 12px 22px rgba(20, 4, 8, 0.22);
+}
+
+.control-panel-tape {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 92px;
+  height: 26px;
+  background: rgba(201, 138, 147, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 3px 5px rgba(20, 4, 8, 0.2);
+}
+
+.controls-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.btn {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  color: var(--wine-deep);
+  background: var(--cream);
+  border: 1.5px solid var(--wine);
+  border-radius: 999px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--wine);
+  color: var(--cream);
+  transform: translateY(-1px);
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--blush);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--wine-bright);
+}
+
+.btn-ghost {
+  border-style: dashed;
+  background: transparent;
+}
+
+.controls-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.hint {
+  font-family: var(--font-script);
+  font-size: 1rem;
+  color: var(--wine);
+}
+
+.error-banner {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f6d9d9;
+  border: 1px solid #b23a3a;
+  color: #6e1414;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.save-status {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #dcefd9;
+  border: 1px solid #4c8a4c;
+  color: #205020;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* -------------------------------------------------------------------- */
+/* Footer                                                                */
+/* -------------------------------------------------------------------- */
+
+.booth-footer {
+  position: relative;
+  z-index: 2;
+  margin-top: 28px;
+  font-family: var(--font-script);
+  font-size: 1rem;
+  color: var(--wine-deep);
+  text-align: center;
+}
+
+/* -------------------------------------------------------------------- */
+/* Responsive                                                            */
+/* -------------------------------------------------------------------- */
+
+@media (max-width: 480px) {
+  .booth {
+    padding: 18px 10px 36px;
+  }
+
+  .vinyl {
+    width: clamp(72px, 22vw, 120px);
+    top: 10px;
+    right: 10px;
+  }
+
+  .camera-shell {
+    width: min(84vw, 340px);
+  }
+
+  .control-panel {
+    padding: 18px 12px 14px;
+  }
+
+  .btn {
+    font-size: 0.8rem;
+    padding: 9px 14px;
+  }
+}
+
+@media (min-width: 900px) {
+  .stage {
+    max-width: 620px;
+  }
+
+  .camera-shell {
+    width: 440px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown span,
+  .flash.firing,
+  .camera-select.alert {
+    animation: none !important;
+  }
+}
